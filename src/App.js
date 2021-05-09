@@ -3,6 +3,7 @@ import React from 'react';
 import Cart from './Cart';
 import Navbar from './Navbar'
 import './index.css';
+import firebase from 'firebase';
 
 class App extends  React.Component {
 
@@ -13,32 +14,34 @@ class App extends  React.Component {
       super();
       this.state = 
       {
-          products:
-          [
-              {
-              price: 999,
-              title: "Mobile Phone",
-              qty: 0,
-              img: 'https://images.unsplash.com/photo-1567581935884-3349723552ca?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=667&q=80',
-              id: 1
-              },
-              {
-              price: 99,
-              title: "Watch",
-              qty: 0,
-              img: 'https://images.unsplash.com/photo-1511370235399-1802cae1d32f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=737&q=80',
-              id: 2
-              },
-              {
-              price: 1500,
-              title: "Laptop",
-              qty: 0,
-              img: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=751&q=80',
-              id: 3
-              }
-          ]
+          products:[],
+          loading:true
       }
   }
+
+
+  componentDidMount()
+  {
+    firebase
+      .firestore()
+      .collection('products')
+      .get()
+      .then((snapshot) => {
+       snapshot.docs.map((doc) => {
+         console.log(doc.data());
+       });
+
+       const products = snapshot.docs.map((doc) => {
+         const data = doc.data();
+         data['id'] = doc.id;
+
+         return data;
+       })
+
+       this.setState({products});
+      })
+  }
+
 
   getCount = () => {
     const {products} = this.state;
@@ -80,7 +83,9 @@ class App extends  React.Component {
   }
 
   render(){
+    const {loading} = this.state;
   return (
+  
     <div>
       <Navbar count={this.getCount()} />
       <h1> Cart </h1>
@@ -90,11 +95,13 @@ class App extends  React.Component {
         onDecrease={this.handleDecraese}
         onDelete={this.handleDelete}    
       />
-
+      {loading && <h1>Loading ...</h1>}
       <div>Total: {this.getTotal()}</div>
     </div>
+    
   );
-  }
+}
+  
 }
 
 export default App;
